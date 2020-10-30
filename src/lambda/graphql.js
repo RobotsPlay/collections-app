@@ -12,6 +12,13 @@ const typeDefs = gql`
         token: String!
         username: String!
         createdAt: String!
+        collections: [Collection!]
+    }
+    type Collection{
+        id: ID!
+        name: String!
+        createdAt: String!
+        user: User!
     }
     input RegisterInput{
         username: String!
@@ -21,16 +28,26 @@ const typeDefs = gql`
     }
     type Query {
         hello: String
+        getCollections: [Collection]
+        getCollection(collectionId: ID!): Collection
     }
     type Mutation{
         register(registerInput:  RegisterInput): User!
         login(username: String!, password: String!): User!
+        createCollection(name: String!): Collection!
+        deleteCollection(collectionId: ID!): String!
     }
 `;
 
 const server = new ApolloServer({
     typeDefs,
-    resolvers
+    resolvers,
+    context: ({ event, context }) => ({
+        headers: event.headers,
+        functionName: context.functionName,
+        event,
+        context,    
+    }),
 });
 
 mongoose.connect(MONGODB, {
